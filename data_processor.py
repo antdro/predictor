@@ -1,6 +1,6 @@
 # Python 3.6.0 |Anaconda 4.3.1 (64-bit)|
 
-from importer import pd
+import pandas as pd
 from datetime import datetime
 
 def convert_kickoff_to_date(df):
