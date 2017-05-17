@@ -193,3 +193,21 @@ def goalkeeper(df, lineup):
     goalkeeper = goalkeeper_df.to_dict()
     
     return goalkeeper
+
+
+
+def team_corners(df, date, team):
+    
+    """
+    Returns a dict with average number of corners a team scored by date.
+    Corners are calculated separately as it is considered a team statistic.
+    """
+    
+    team_df = df[(df.team == team) & (df.kickoff < date)]
+    corners = team_df["COR"].sum()
+    matches = team_df.kickoff.unique().shape[0]
+    
+    corners_avg = round(corners/matches ,4)
+    corners_dict = {"COR" : corners_avg}
+    
+    return corners_dict
