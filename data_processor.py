@@ -210,7 +210,11 @@ def team_corners(df, date, team):
     corners = team_df["COR"].sum()
     matches = team_df.kickoff.unique().shape[0]
     
-    corners_avg = round(corners/matches ,4)
+    try:
+        corners_avg = round(corners/matches ,4)
+    except ZeroDivisionError:
+        corners_avg = round(corners, 4)
+        
     corners_dict = {"COR" : corners_avg}
     
     return corners_dict
@@ -220,7 +224,7 @@ def team_corners(df, date, team):
 def compose_team(df, date, team):
     
     """
-    Prepair statistics for a team for a given date. Retruns DataFrame.
+    Prepairs statistics for a team for a given date. Retruns DataFrame.
     """
     
     lineup = lineup_by_date(df, date, team)
