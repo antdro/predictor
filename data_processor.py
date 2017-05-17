@@ -47,10 +47,13 @@ def lineup_by_date(df, date, team):
     forwards = df[df.position == "forward"].player.tolist()
     defenders = df[df.position == "defender"].player.tolist()
     goalkeepers = df[df.position == "goalkeeper"].player.tolist()
-    midfielders = df[df.position == "midfielder"].player.tolist()    
+    midfielders = df[df.position == "midfielder"].player.tolist()
+    
+    field = df.field.tolist()[0]
 
     lineup = {
-
+        
+        "field" : field,
         "team" : team,
         "date" : date,
         "for" : forwards,
