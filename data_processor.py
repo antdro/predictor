@@ -214,3 +214,29 @@ def team_corners(df, date, team):
     corners_dict = {"COR" : corners_avg}
     
     return corners_dict
+
+
+
+def compose_team(df, date, team):
+    
+    """
+    Prepair statistics for a team for a given date. Retruns DataFrame.
+    """
+    
+    lineup = lineup_by_date(df, date, team)
+
+    team = lineup["team"]
+    field = lineup["field"]
+
+    attack_stats = attack(df, lineup)
+    midfield_stats = midfield(df, lineup)
+    defence_stats = defence(df, lineup)
+    goalkeeper_stats = goalkeeper(df, lineup)
+
+    corners = team_corners(df, date, team)
+
+    team_dict = {**attack_stats, **midfield_stats, **defence_stats, **goalkeeper_stats, **corners}
+    team_df = pd.DataFrame(team_dict, index = [1])
+    team_df.columns = [key + "_" + field for key in team_df.keys()]
+    
+    return team_df
