@@ -93,3 +93,42 @@ def attack(df, lineup):
     
     
     return forwards
+
+
+
+def midfield(df, lineup):
+    
+    """
+    Given lineup, assess team's creative potential and ball control.
+    Midfield is represented with 'G', 'GA', 'S', 'FC', 'FS', 'PAS' featues.
+    Each statistic is the sum of players' averages appearing in lineup.
+    Returns dictionary.
+    """
+
+    midfielders = {}
+    midfielders_avg = []
+
+    for player in lineup["mid"]:
+    
+        date = lineup["date"]
+        player_df = df[(df.player == player) & (df.kickoff < date)]
+
+        main_features = ['G', 'GA', 'S', 'FC', 'FS']
+        midfield_features = ['PAS']
+        
+        player_main_df = player_df.loc[:, main_features]
+        player_avg_performance_main = player_main_df.mean().to_dict()
+        midfielder_df = player_df[player_df.position == 'midfielder']
+        midfielder_df = midfielder_df.loc[:, midfield_features]
+        player_avg_performance_midfield = midfielder_df.mean().to_dict()
+        midfielder = {**player_avg_performance_main, **player_avg_performance_midfield}
+    
+        midfielders_avg.append(midfielder)
+        
+    midfielders_df = pd.DataFrame(midfielders_avg).round(4)
+    midfielders_df.columns = [key + "_m" for key in midfielders_df.keys()]
+    
+    midfielders = midfielders_df.sum().to_dict()
+    
+    
+    return midfielders
