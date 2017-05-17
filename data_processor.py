@@ -60,3 +60,36 @@ def lineup_by_date(df, date, team):
     }
     
     return lineup
+
+
+
+def attack(df, lineup):
+    
+    """
+    Given lineup, assess team's attacking potential.
+    Attack is represented with 'G', 'GA', 'S', 'PAS' featues.
+    Each statistic is the sum of players' averages appearing in lineup.
+    Returns dictionary.
+    """
+
+    forwards = {}
+    forwards_avg = []
+
+    for player in lineup["for"]:
+    
+        date = lineup["date"]
+        player_df = df[(df.player == player) & (df.kickoff < date)]
+
+        features = ['G', 'GA', 'S', 'PAS']
+        player_df = player_df.loc[:, features] 
+        player_avg_performance = player_df.mean().to_dict()
+    
+        forwards_avg.append(player_avg_performance)
+        
+    forwards_df = pd.DataFrame(forwards_avg).round(4)
+    forwards_df.columns = [key + "_f" for key in forwards_df.keys()]
+    
+    forwards = forwards_df.sum().to_dict()
+    
+    
+    return forwards
