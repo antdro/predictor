@@ -132,3 +132,42 @@ def midfield(df, lineup):
     
     
     return midfielders
+
+
+
+def defence(df, lineup):
+    
+    """
+    Given lineup, assess team's defending potential.
+    Defence is represented with 'G', 'GA', 'S', 'FC', 'FS', 'TA', 'CLR' featues.
+    Each statistic is the sum of players' averages appearing in lineup.
+    Returns dictionary.
+    """
+
+    defenders = {}
+    defenders_avg = []
+
+    for player in lineup["def"]:
+    
+        date = lineup["date"]
+        player_df = df[(df.player == player) & (df.kickoff < date)]
+
+        main_features = ['G', 'GA', 'S', 'FC', 'FS']
+        defender_features = ['TA', 'CLR']
+        
+        player_main_df = player_df.loc[:, main_features]
+        player_avg_performance_main = player_main_df.mean().to_dict()
+        defender_df = player_df[player_df.position == 'defender']
+        defender_df = defender_df.loc[:, defender_features]
+        player_avg_performance_defence = defender_df.mean().to_dict()
+        defender = {**player_avg_performance_main, **player_avg_performance_defence}
+    
+        defenders_avg.append(defender)
+        
+    defenders_df = pd.DataFrame(defenders_avg).round(4)
+    defenders_df.columns = [key + "_d" for key in defenders_df.keys()]
+    
+    defenders = defenders_df.sum().to_dict()
+    
+    
+    return defenders
