@@ -266,3 +266,23 @@ def compose_fixture(df, date, home, away):
 
 
 
+def get_fixtures(df):
+    
+    """
+    Returns df with all fixtures, given raw df. Columns are "home", "away", "kickoff"
+    """
+
+    records = df.loc[:, ["team", "opponent", "kickoff"]]
+    records = records.drop_duplicates()
+    records = records.reset_index(drop = True)
+
+    number_of_records = records.shape[0]
+    even_indeces = [n for n in range(number_of_records) if n % 2 == 0]
+
+    fixtures = records.iloc[even_indeces, :]
+    fixtures = fixtures.reset_index(drop = True)
+    fixtures.columns = ["home", "away", "kickoff"]
+
+    return fixtures
+
+
