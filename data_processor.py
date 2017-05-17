@@ -171,3 +171,25 @@ def defence(df, lineup):
     
     
     return defenders
+
+
+
+def goalkeeper(df, lineup):
+    
+    """
+    Given lineup, assess goalkeeper strength.
+    Goalkeeper is represented with 'SAV', 'GC', 'GK' featues.
+    Returns dictionary.
+    """
+    player = lineup["goal"][0]
+    
+    date = lineup["date"]
+    player_df = df[(df.player == player) & (df.kickoff < date)]
+    
+    features = ['SAV', 'GC', 'GK']
+    player_df = player_df.loc[:, features] 
+    goalkeeper_df = player_df.mean().round(4)
+
+    goalkeeper = goalkeeper_df.to_dict()
+    
+    return goalkeeper
