@@ -244,3 +244,25 @@ def compose_team(df, date, team):
     team_df.columns = [key + "_" + field for key in team_df.keys()]
     
     return team_df
+
+
+
+def compose_fixture(df, date, home, away):
+    
+    """
+    Returns df representing a fixture specified by date, home, and away.
+    DataFrame has all 42 statisctis calculated by attack, midfield, defence and goalkeeper functions.
+    """
+    
+    home_df = compose_team(df, date, home)
+    away_df = compose_team(df, date, away)
+    
+    fixture = pd.concat([home_df, away_df], axis = 1)
+    fixture["home"] = home
+    fixture["away"] = away
+    fixture["kickoff"] = date
+     
+    return fixture
+
+
+
