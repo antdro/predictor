@@ -286,3 +286,26 @@ def get_fixtures(df):
     return fixtures
 
 
+
+def transform_data(df):
+    
+    """
+    Get data ready for analysis. Takes raw df and return df with all fixtures, each represented by 42 statistics.
+    """
+    
+    fixtures = get_fixtures(df)
+
+    home = list(fixtures.home)
+    away = list(fixtures.away)
+    date = list(fixtures.kickoff)
+
+    dataset = pd.DataFrame()
+
+    for home, away, date in zip(home, away, date):
+
+        fixture = compose_fixture(df, date, home, away)
+        dataset = pd.concat([dataset, fixture])
+
+    dataset = dataset.reset_index(drop = True)
+    
+    return dataset
