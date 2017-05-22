@@ -40,3 +40,24 @@ def evaluate_model_by_cv(model, data, target, par_range, kernel, cv):
         scores_dict[pos] = np.array(scores).reshape(len(par_range[pos]), len(par_range[pos]))
 
     return scores_dict
+
+
+
+def move_scores_to_df(scores_dict, par_range):
+        
+    """
+    Takes a dictionary with test scores and returns a dictionary with corresponding dataframes ready for drawing.
+    """    
+        
+    scores_df = {}
+    
+    for pos in scores_dict:
+        
+        df = pd.DataFrame(scores_dict[pos])
+        df.index = par_range[pos]
+        df.columns = par_range[pos]
+        df = df[::-1]
+        
+        scores_df[pos] = df
+        
+    return scores_df
