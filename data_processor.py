@@ -2,6 +2,7 @@
 
 import pandas as pd
 from datetime import datetime
+from os import listdir
 
 def convert_kickoff_to_date(df):
     
@@ -302,10 +303,41 @@ def transform_data(df):
     dataset = pd.DataFrame()
 
     for home, away, date in zip(home, away, date):
-
-        fixture = compose_fixture(df, date, home, away)
+        
+        try:
+            fixture = compose_fixture(df, date, home, away)
+        except IndexError:
+            continue
+        
         dataset = pd.concat([dataset, fixture])
 
     dataset = dataset.reset_index(drop = True)
     
     return dataset
+
+
+
+def collect_data_from_csvs():
+    
+    """
+    Collects data from all csv files located in data/.
+    Retruns dataframe sorted by kickoff date.
+    """
+    
+    path_to_files = "data/"
+    extension = ".csv"
+
+    files = listdir(path_to_files)
+    csv_files = [file for file in files if extension in file]
+
+    data = pd.DataFrame()
+    for file in csv_files:
+
+        df = pd.read_csv(path_to_files + file, encoding = "latin1")
+        df = convert_kickoff_to_date(df)
+        data = pd.concat([data, df])
+
+    data = data.sort_values(by = "kickoff")
+    data = data.reset_index(drop = True)
+    
+    return data
