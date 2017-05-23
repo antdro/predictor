@@ -376,3 +376,31 @@ def aggregate_features(data):
     data = data.reset_index(drop = True)    
 
     return data
+
+
+
+def add_goals_and_draw_prices(data):
+    
+    """
+    Adds goals scored and draw prices for each fixture in data dataframe.
+    """
+
+    path_to_files = "data/goals/"
+    extension = ".csv"
+
+    files = listdir(path_to_files)
+    csv_files = [file for file in files if extension in file]
+    
+    goals_df = pd.DataFrame()
+    
+    for file in csv_files:
+
+        goals = pd.read_csv(path_to_files + file, encoding = "latin1")
+        goals = goals.loc[:, ["HomeTeam", "AwayTeam", "FTHG", "FTAG", "BbMxD"]]
+        goals.columns = ["home", "away", "HG", "AG", "draw"]
+        
+        goals_df = pd.concat([goals_df, goals])
+    
+    data = data.merge(goals_df, how = "left", on = ["home", "away"])
+    
+    return data
