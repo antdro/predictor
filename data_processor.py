@@ -341,3 +341,38 @@ def collect_data_from_csvs():
     data = data.reset_index(drop = True)
     
     return data
+
+
+
+def aggregate_features(data):
+    
+    """
+    Aggregate features across positions, reduce dimensionality to 18 features.
+    """
+
+    data['GA_home'] = data['GA_d_home'] + data['GA_f_home'] + data['GA_m_home']
+    data['S_home'] =  data['S_d_home'] + data['S_f_home'] + data['S_m_home']
+    data['G_home'] =  data['G_d_home'] + data['G_f_home'] + data['G_m_home']
+    data['PAS_home'] = data['PAS_f_home'] + data['PAS_m_home']
+
+    data['GA_away'] = data['GA_d_away'] + data['GA_f_away'] + data['GA_m_away']
+    data['S_away'] =  data['S_d_away'] + data['S_f_away'] + data['S_m_away']
+    data['G_away'] =  data['G_d_away'] + data['G_f_away'] + data['G_m_away']
+    data['PAS_away'] = data['PAS_f_away'] + data['PAS_m_away']
+
+    # scale pass statistic per minute
+    data["PAS_home"] = [value/90 for value in list(data["PAS_home"])]
+    data["PAS_away"] = [value/90 for value in list(data["PAS_away"])]
+
+    columns = [
+        'CLR_d_home', 'COR_home', 'SAV_home', 'TA_d_home', 'GC_home', 'GA_home', 'S_home', 'G_home', 'PAS_home',
+        'CLR_d_away', 'COR_away', 'SAV_away', 'TA_d_away', 'GC_away', 'GA_away', 'S_away', 'G_away', 'PAS_away',
+        'home', 'away', 'kickoff'
+    ]
+
+    data = data.loc[:, columns]
+    data = data.dropna(axis = 0)
+    data = data.sort_values(by = "kickoff")
+    data = data.reset_index(drop = True)    
+
+    return data
