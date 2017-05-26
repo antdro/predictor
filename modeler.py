@@ -16,10 +16,9 @@ def evaluate_model_by_cv(model, data, target, par_range, kernel, cv):
     par_range(dict): each value is a range of values for parameter grid building
         Example:
         
-        {0: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-         1: [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0],
-         2: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-         3: [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]}
+        {
+        0: {"c" : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "gamma" : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+        }
     
     model(sklearn.model): model to evaluate, example: svm
     data(df): train data
@@ -30,14 +29,17 @@ def evaluate_model_by_cv(model, data, target, par_range, kernel, cv):
     scores_dict = {}
 
     for pos in par_range:
+        
+        c_range = par_range[pos]["c"]
+        gamma_range = par_range[pos]["gamma"]
 
-        parameters = dict(C = par_range[pos], gamma = par_range[pos], kernel = [kernel])
+        parameters = dict(C = c_range, gamma = gamma_range, kernel = [kernel])
 
         grid = GridSearchCV(model, parameters, cv = cv)
         grid.fit(data, target)
 
         scores = [test_score for test_score in grid.cv_results_["mean_test_score"]]
-        scores_dict[pos] = np.array(scores).reshape(len(par_range[pos]), len(par_range[pos]))
+        scores_dict[pos] = np.array(scores).reshape(len(c_range), len(gamma_range))
 
     return scores_dict
 
@@ -54,8 +56,8 @@ def move_scores_to_df(scores_dict, par_range):
     for pos in scores_dict:
         
         df = pd.DataFrame(scores_dict[pos])
-        df.index = par_range[pos]
-        df.columns = par_range[pos]
+        df.index = par_range[pos]["c"]
+        df.columns = par_range[pos]["gamma"]
         df = df[::-1]
         
         scores_df[pos] = df
