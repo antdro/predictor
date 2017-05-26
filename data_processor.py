@@ -413,3 +413,29 @@ def add_goals(data):
     data = data.merge(goals_df, how = "left", on = ["home", "away"])
     
     return data
+
+
+
+def break_df_by_month(df):
+    
+    """
+    Given df with kickoff column, breaks down fixtures on monthly basis
+    Returns dictionary of dataframes with keys being ordinary number of months, i.e. 12 for december, 3 for march.
+    """
+
+    dates = pd.date_range("2016-07-01", "2017-06-01", freq = "M")
+
+    dfs = {}
+
+    previous_date = dates[0]
+
+    for date in dates[1:]:
+
+        month = date.month
+        month_df = df[(df.kickoff > previous_date) & (df.kickoff < date)]
+        
+        dfs[month] = month_df
+        
+        previous_date = date
+        
+    return dfs
