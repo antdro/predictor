@@ -7,13 +7,22 @@ from os import listdir
 def convert_kickoff_to_date(df):
     
     """
-    Converts kickoff column from sting to datetime.
+    Converts kickoff column from sting to datetime. Supported formats: "%Y-%m-%d", "%m/%d/%Y"
     Returns updated dataframe.
     """
     
-    from_str_to_date = lambda date: datetime.strptime(date, "%m/%d/%Y")
-    df.kickoff = [from_str_to_date(date) for date in list(df.kickoff)]
+    date_value = df.kickoff[0]
     
+    if type(date_value) is not pd.tslib.Timestamp:
+        
+        if '-' in date_value:
+            from_str_to_date = lambda date: datetime.strptime(date, "%Y-%m-%d")
+            df.kickoff = [from_str_to_date(date) for date in list(df.kickoff)]
+
+        if '/' in date_value:
+            from_str_to_date = lambda date: datetime.strptime(date, "%m/%d/%Y")
+            df.kickoff = [from_str_to_date(date) for date in list(df.kickoff)]
+        
     return df
 
 
