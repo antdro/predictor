@@ -3,6 +3,7 @@
 import pandas as pd
 from datetime import datetime
 from os import listdir
+from sklearn import preprocessing
 
 def convert_kickoff_to_date(df):
     
@@ -439,3 +440,48 @@ def break_df_by_month(df):
         previous_date = date
         
     return dfs
+
+
+
+def preprocess_data(dfs, target):
+    
+    """
+    For each df in dictionary the number of columns is reduced to number of features.
+    Features get scaled using preprocessing.scale()
+    
+    Arguments:
+    dfs(dict) - dictionary with monthly fixtures
+    target(str) - market to predict, three markets get handled: "even", "odd", "draw"
+    
+    Returns updated dictionary.
+    """
+    
+    dfs_ready = {}
+    
+    for month in dfs:
+        
+        # copy features
+        temp = dfs[month]
+        number_of_features = len(temp.columns) - 5
+        data = temp.iloc[:, :number_of_features]
+        
+        # scale data
+        index = data.index
+        data = preprocessing.scale(data)
+        data = pd.DataFrame(data)
+        data.index = index
+        
+        # add target
+        if target == "even":
+            data["target"] = (1 + temp.HG + temp.AG) % 2
+        elif target == "odd":
+            data["target"] = (temp.HG + temp.AG) % 2
+        elif target == "draw":
+            draws = [1 if val else 0 for val in (temp.HG == temp.AG)]
+            data["target"] = draws
+        else:
+            print ("Select either even, odd or draw market.")
+        
+        dfs_ready[month] = data
+    
+    return dfs_ready
