@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV
+import os
 
 
 
@@ -63,3 +64,62 @@ def move_scores_to_df(scores_dict, par_range):
         scores_df[pos] = df
         
     return scores_df
+
+
+
+def calculate_scores(dfs, params_grid):
+    
+    """
+    Go though data in dfs period by period, updating training set when each period is completed.
+    Calculate test score for each parameter pair in a grid specified in params_grid dictionary.
+    Save results as .csv file.
+    For each grid plot a graph for each month and save it as .png file.
+    
+    Arguments:
+        
+        dfs(dict): dictionary where keys - ordinary numbers of months, values - df for corresponding period
+        params_grid(dict): dictionary definging grids of parameters, keys - grid name, values - dict with c, gamma ranges 
+    """
+    
+    prev = dfs[8]
+
+    for month in dfs.keys():
+
+        month_str = str(month)
+
+        if month != 8:
+
+            learn_df = pd.concat([prev, dfs[month]])
+
+            data_learn = learn_df.iloc[:, :-1]
+            target_learn = learn_df.iloc[:, -1]
+
+            model = svm.SVC(random_state = 3)
+            scores_dict = evaluate_model_by_cv(model, data_learn, target_learn, params_grid, "rbf", 5)
+            scores_df = move_scores_to_df(scores_dict, params_grid)
+
+            for grid in scores_df:
+
+                if not os.path.exists(grid):
+                    os.makedirs(grid)
+
+                scores_df[grid].to_csv(grid + "/" + month_str + ".csv")
+                scores = scores_df[grid]
+
+                fig, ax = plt.subplots(1, 1, figsize = (10, 8))
+                g1 = sb.heatmap(scores, cbar = True, ax = ax, cmap = "hot")
+
+                tly = ax.get_yticklabels()
+                ax.set_yticklabels(tly, rotation = 0)
+
+                tlx = ax.get_xticklabels()
+                ax.set_xticklabels(tlx, rotation = 90)
+
+                plt.title("month: " + month_str, fontsize = 16)
+                plt.xlabel("gamma", fontsize = 16)
+                plt.ylabel("c", fontsize = 16)
+
+                fig.savefig(grid + "/" + month_str + ".png")
+                plt.close();
+
+                prev = learn_df
