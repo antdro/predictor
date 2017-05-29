@@ -5,7 +5,7 @@ import numpy as np
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV
 import os
-
+from math import isnan
 
 
 def evaluate_model_by_cv(model, data, target, par_range, kernel, cv):
@@ -123,3 +123,36 @@ def calculate_scores(dfs, params_grid):
                 plt.close();
 
                 prev = learn_df
+                
+                
+                
+def get_best_params(csv, test_score):
+    
+    """
+    Returns a list of pairs of parameters ensuring the best model's performance. 
+    Performance is measured with mean test score.
+    
+    Arguments:
+        csv(str): path to csv containing grid of scores
+        test_score(float): value is used to filter parameters ensuring the best performance
+        
+    Returns: 
+        params(list): list of tuples i.e. [(gamma1, c1), (gamma2, c2)]
+    """
+    
+    c_column_name = "Unnamed: 0"
+
+    df = pd.read_csv(csv)
+    df.index = list(df[c_column_name])
+    df = df.iloc[:, 1:]
+    df = df[df > test_score]
+    params_dict = dict(df)
+
+    params = []
+
+    for gamma in params_dict:
+        for c in params_dict[gamma].index:
+            if not isnan(params_dict[gamma][c]):
+                params.append((float(gamma), float(c)))
+                
+    return params
