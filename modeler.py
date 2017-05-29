@@ -156,3 +156,27 @@ def get_best_params(csv, test_score):
                 params.append((float(gamma), float(c)))
                 
     return params
+
+
+
+def train_and_predict(data_learn, target_learn, data_predict, c, gamma):
+    
+    """
+    Train SVC and make predictions.
+    
+    Arguments:
+        data_learn(df): test dataset
+        target_learn(series): labels for test
+        data_predict(df): dataset to label
+        c - c parametr for SVC
+        gamma - gamma parameter for SVC
+        
+    Returns:
+        predictions(numpy.ndarray): probabilites for each record belonning to either class
+    """
+    
+    clf = svm.SVC(random_state = 3, kernel = 'rbf', C = c, gamma = gamma, probability = True)
+    clf.fit(data_learn, target_learn)
+    predictions = clf.predict_proba(data_predict)
+    
+    return predictions
