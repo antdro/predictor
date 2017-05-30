@@ -222,3 +222,36 @@ def trade(target_predict, predictions, prob, price, stake):
         print("no fixtures suggested")
         
     return bets.index
+
+
+
+def get_all_predictions_by_best_params(params, data_learn, target_learn, data_predict, target_predict, prob):
+    
+    """
+    Returns list of indeces for fixtures predicted with best parameters.
+
+    data_learn(df): test dataset
+    target_learn(series): labels for test
+    data_predict(df): dataset to label
+    target_predict(series): actual results
+    prob(float): choose a fixture to bet on if probability for target is higher that prob value
+    """
+    
+    all_predictions = []
+
+    for pair in params:
+
+        c = float(pair[1])
+        gamma = float(pair[0])
+        
+        predictions = train_and_predict(data_learn, target_learn, data_predict, c, gamma)
+        
+        results = pd.DataFrame(target_predict)  
+        target_probs = [prob[1] for prob in predictions]
+        results["predictions"] = target_probs
+        bets = results[results.predictions > prob]
+        indeces = list(bets.index)
+
+        all_predictions = all_predictions + indeces
+        
+    return all_predictions
