@@ -180,3 +180,45 @@ def train_and_predict(data_learn, target_learn, data_predict, c, gamma):
     predictions = clf.predict_proba(data_predict)
     
     return predictions
+
+
+
+def trade(target_predict, predictions, prob, price, stake):
+    
+    """
+    Trade on predictions and print accuracy and profit.
+    
+    Arguments:
+        prob(float): choose a fixture to bet on if probability for target is higher that prob value
+        price(float): an average price the bet is placed at
+        stake(int): the amount per bet
+        target(dataframe): dataset with target fixtures results
+        predictions(numpy): array with probabilities for fixtures
+        
+    """
+    
+    results = pd.DataFrame(target_predict)
+    
+    target_probs = [prob[1] for prob in predictions]
+    
+    results["predictions"] = target_probs
+    
+    bets = results[results.predictions > prob]
+    correct_bets = bets[bets.target == 1]
+    n_correct = correct_bets.shape[0]
+    n_bets = bets.shape[0]
+
+    payout = n_correct * price * stake
+    bank = n_bets * stake
+    
+    if n_bets > 0:
+        profit_proc = round(100 * (payout - bank) / bank , 2)
+        accuracy = round(100 * (n_correct/n_bets), 2)
+
+        print (str(n_correct) + " out of " + str(n_bets))
+        print ("accuracy: " + str(accuracy) + "%")
+        print ("profit: " + str(profit_proc) + "%")
+    else:
+        print("no fixtures suggested")
+        
+    return bets.index
