@@ -417,6 +417,44 @@ def add_goals(data):
 
 
 
+def add_prices(data, price):
+    
+    """
+    Adds prices to dataframe.
+    
+    Arguments:
+    
+        data(df): dataframe to which prices are added
+        price(str): column name of price column to add
+        
+    Return:
+        
+        data(df): updated dataframe
+    """
+    
+    # path to datasets with prices
+    path_to_files = "data/goals/"
+    extension = ".csv"
+
+    files = listdir(path_to_files)
+    csv_files = [file for file in files if extension in file]
+    
+    df = pd.DataFrame()
+    
+    for file in csv_files:
+        
+        prices = pd.read_csv(path_to_files + file, encoding = "latin1")
+        prices = prices.loc[:, ["HomeTeam", "AwayTeam", price]]
+        prices.columns = ["home", "away", price]
+        
+        df = pd.concat([df, prices])
+    
+    data = data.merge(df, how = "left", on = ["home", "away"])
+    
+    return data
+
+
+
 def break_df_by_month(df):
     
     """
