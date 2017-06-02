@@ -283,16 +283,19 @@ def get_fixtures(df):
     Returns df with all fixtures, given raw df. Columns are "home", "away", "kickoff"
     """
 
-    records = df.loc[:, ["team", "opponent", "kickoff"]]
-    records = records.drop_duplicates()
-    records = records.reset_index(drop = True)
-
-    number_of_records = records.shape[0]
-    even_indeces = [n for n in range(number_of_records) if n % 2 == 0]
-
-    fixtures = records.iloc[even_indeces, :]
-    fixtures = fixtures.reset_index(drop = True)
-    fixtures.columns = ["home", "away", "kickoff"]
+    records = raw.loc[:, ["team", "field" , "opponent", "kickoff"]]
+    
+    home_fixs = records[records.field == "home"]
+    home_fixs = home_fixs.loc[:, ["team", "opponent", "kickoff"]]
+    home_fixs.columns = ["home", "away", "kickoff"]
+    
+    away_fixs = records[records.field == "away"]
+    away_fixs = away_fixs.loc[:, ["opponent", "team", "kickoff"]]
+    away_fixs.columns = ["home", "away", "kickoff"]
+    
+    fixtures = pd.concat([home_fixs, away_fixs], axis = 0)
+    fixtures.drop_duplicates(inplace = True)
+    fixtures.reset_index(drop = True, inplace = True)
 
     return fixtures
 
