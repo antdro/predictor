@@ -283,7 +283,7 @@ def get_fixtures(df):
     Returns df with all fixtures, given raw df. Columns are "home", "away", "kickoff"
     """
 
-    records = raw.loc[:, ["team", "field" , "opponent", "kickoff"]]
+    records = df.loc[:, ["team", "field" , "opponent", "kickoff"]]
     
     home_fixs = records[records.field == "home"]
     home_fixs = home_fixs.loc[:, ["team", "opponent", "kickoff"]]
@@ -444,6 +444,9 @@ def add_prices(data, price):
     
     df = pd.DataFrame()
     
+    if price == "draw":
+        price = "BbMxD"
+    
     for file in csv_files:
         
         prices = pd.read_csv(path_to_files + file, encoding = "latin1")
@@ -456,6 +459,48 @@ def add_prices(data, price):
     
     return data
 
+
+
+def scale_and_add_goals_prices(data, price):
+    
+    """
+    Take df after transform_data() is applied and scale data + add goals and prices.
+    Arguments:
+        data(df) - dataframe to process
+        price(str) - name of price column, if draw use just "draw"
+    Return:
+        data(df) - updated dataframe
+    """
+
+    # split dataframe
+    fixtures = data.iloc[:, -3:]
+    fixtures = fixtures.loc[:, ["home", "away", "kickoff"]]
+    data = data.iloc[:, :-3]
+
+    # scale data
+    index = data.index
+    columns = data.columns
+    data = preprocessing.scale(data)
+    data = pd.DataFrame(data)
+    data.index = index
+    data.columns = columns
+
+    # bring fixture info back
+    fixtures = fixtures.reset_index()
+    data = data.reset_index()
+    data = data.merge(fixtures, how = "left", on = ["index"])
+    data = data.sort_values(by = "kickoff")
+    data = data.reset_index(drop = True)
+    data = data.iloc[:, 1:]
+
+    #add goals and prices
+    data = data.dropna(axis = 0)
+    data = add_goals(data)
+    data = add_prices(data, "BbMxD")
+    data = data.sort_values(by = "kickoff")
+    data = data.reset_index(drop = True)
+
+    return data
 
 
 def break_df_by_month(df):
