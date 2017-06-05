@@ -6,6 +6,9 @@ from sklearn import svm
 from sklearn.model_selection import GridSearchCV
 import os
 from math import isnan
+import matplotlib.pyplot as plt
+import seaborn as sb
+
 
 
 def evaluate_model_by_cv(model, data, target, par_range, kernel, cv):
@@ -255,3 +258,88 @@ def get_all_predictions_by_best_params(params, data_learn, target_learn, data_pr
         all_predictions = all_predictions + indeces
         
     return all_predictions
+
+
+
+def trade_and_print_report(dfs, scores, probs, path, months):
+
+    """
+    Train classifier using the best parameters found in csvs located in path.
+    Make predictions for each month starting from February.
+    Trade on predictions.
+    Print report for each month and the whole period of trading.
+
+    Arguments:
+        dfs(dict) - dictionary with monthly fixtures
+        scores(list): each score greater than one in the list provides the set of best parameters"
+        probs(list): predictions with probability higher than one from list is selected for trading
+        path(str): location of csvs with parameter grids for each month
+        months(list): periods of time (months) to trade on
+
+    Return: None, but prints the report.
+    
+    TODO: replace printing report with saving tradin results into a file.
+
+    """
+    for prob in probs:
+        bets = pd.DataFrame()
+        for score in scores:
+
+            print ("\n")
+            print ("test_score: " + str(score))
+            print ("prob: " + str(prob))
+            print ("\n")
+
+            learn_df = pd.concat([dfs[8], dfs[9], dfs[10], dfs[11], dfs[12], dfs[1]])
+
+            for month in months:
+                predict_df = dfs[month]
+
+                data_learn = learn_df.iloc[:, :-1]
+                target_learn = learn_df.iloc[:, -1]
+
+                data_predict = predict_df.iloc[:, :-1]
+                target_predict = predict_df.iloc[:, -1]
+
+                params = get_best_params(path + str(month - 1) + ".csv", score)
+
+                indeces = get_all_predictions_by_best_params(params, data_learn, target_learn, data_predict, target_predict, prob)
+                indeces = list(set(indeces))
+
+                learn_df = pd.concat([learn_df, predict_df])
+
+                bets_df = data.loc[indeces, :]
+
+                bets = pd.concat([bets, bets_df])
+
+                n_bets = bets_df.shape[0]
+                n_draws = bets_df[bets_df.HG == bets_df.AG].shape[0]
+                n_evens = n_bets - sum((bets_df.HG + bets_df.AG) % 2)
+
+                draws = bets_df[bets_df.HG == bets_df.AG]
+                prices_draws = draws[prices]
+
+                if n_bets != 0:
+                    profit_procent = round(100* (prices_draws.sum() - n_bets) / n_bets, 1)
+                else:
+                    profit_procent = 0
+
+                print ("month: " + str(month))
+                print (str(n_draws) + " draws out of " + str(n_bets))
+                print (str(n_evens) + " even goals out of " + str(n_bets))
+                print ("profit: " + str(profit_procent) + "%")
+                print ("\n")
+
+        # overall accuracy and profit
+        all_draws = bets[bets.HG == bets.AG]
+        n_all_draws = all_draws.shape[0]
+        n_all_bets = bets.shape[0]
+
+        if n_all_bets == 0:
+            print ("overall accuracy: 0%")
+            print ("overall profit: 0%")
+            print ("\n")
+        else:
+            print ("overall accuracy: " + str(round(100 * n_all_draws/n_all_bets, 2)) + "%")
+            print ("overall profit: " + str(round(100 * (all_draws[prices].sum() - n_all_bets) / n_all_bets, 2)) + "%")
+            print ("\n")
