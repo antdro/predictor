@@ -496,7 +496,7 @@ def scale_and_add_goals_prices(data, price):
     #add goals and prices
     data = data.dropna(axis = 0)
     data = add_goals(data)
-    data = add_prices(data, "BbMxD")
+    data = add_prices(data, price)
     data = data.sort_values(by = "kickoff")
     data = data.reset_index(drop = True)
 
@@ -521,7 +521,7 @@ def break_df_by_month(df):
         month = date.month
         month_df = df[(df.kickoff > previous_date) & (df.kickoff < date)]
         
-        dfs[month] = month_df
+        dfs[month] = month_df.iloc[:, :-1]
         
         previous_date = date
         
@@ -571,3 +571,47 @@ def preprocess_data(dfs, target):
         dfs_ready[month] = data
     
     return dfs_ready
+
+
+
+
+def pca_4_components(data):
+    """
+    Prepair dataset for training and prediction.
+    Split 42 features set into home and away subsets and apply 2 components PCA to each subset.
+    Add draw column and break fixtures by month.
+
+    Arguments:
+        data(df) - 42 features dataset after scale_and_add_goals_prices() is applied
+
+    Return:
+        dfs(dict) - dictionary with monthly fixtures, ready for classification
+    """
+
+    draws = [1 if draw else 0 for draw in data.HG == data.AG]
+    draws_df = pd.DataFrame(draws, columns = ["label"])
+
+    home_fts = [feature for feature in data.columns if '_home' in feature ]
+    away_fts = [feature for feature in data.columns if '_away' in feature ]
+
+    data_home = data.loc[:, home_fts]
+    data_away = data.loc[:, away_fts]
+
+    pca = PCA(n_components = 2)
+    pca.fit(data_home)
+    home = pca.transform(data_home)
+    pca.fit(data_away)
+    away = pca.transform(data_away)
+
+    home_df = pd.DataFrame(home, columns = ['Home1', 'Home2'])
+    away_df = pd.DataFrame(away, columns = ['Away1', 'Away2'])
+    data_pca = pd.concat([home_df, away_df], axis = 1)
+
+    data_pca_kickoff = pd.concat([data_pca, 
+                                  draws_df,
+                                  pd.DataFrame(data["kickoff"])], axis = 1)
+
+    data_pca_kickoff = convert_kickoff_to_date(data_pca_kickoff)
+    dfs = break_df_by_month(data_pca_kickoff)
+
+    return dfs
