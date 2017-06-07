@@ -261,7 +261,7 @@ def get_all_predictions_by_best_params(params, data_learn, target_learn, data_pr
 
 
 
-def trade_and_print_report(dfs, scores, probs, path, months):
+def trade_and_print_report(data, dfs, prices, scores, probs, path, months):
 
     """
     Train classifier using the best parameters found in csvs located in path.
