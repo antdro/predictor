@@ -4,6 +4,8 @@ import pandas as pd
 from datetime import datetime
 from os import listdir
 from sklearn import preprocessing
+from sklearn.decomposition import PCA
+
 
 def convert_kickoff_to_date(df):
     
@@ -203,7 +205,8 @@ def goalkeeper(df, lineup):
     features = ['SAV', 'GC', 'GK']
     player_df = player_df.loc[:, features] 
     goalkeeper_df = player_df.mean().round(4)
-
+    goalkeeper_df.columns = [key + "_g" for key in goalkeeper_df.keys()]
+    
     goalkeeper = goalkeeper_df.to_dict()
     
     return goalkeeper
