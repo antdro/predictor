@@ -618,3 +618,81 @@ def pca_4_components(data):
     dfs = break_df_by_month(data_pca_kickoff)
 
     return dfs
+
+
+
+def apply_pca_to_positions(data, pca_params):
+
+    """
+    Transform dataset such that each position subspace gets reduced by pca. 
+    
+    Arguments:
+        data(df): dataset to transform
+        pca_params(dict): dictionary with keys being position and values number of pca components
+        
+        Example: 
+            pca_params = {
+                "attack" : 1,
+                "midfield" : 2, 
+                "defence" : 3,
+                "goalkeeper" : 2 }
+        
+    Returns:
+        pca_df(df): transformed dataset
+        report(dict): dictionary with info about pca transformation
+        
+        Example:
+        report = 
+            {'away': {'attack': [4, 1, 0.75],
+              'defence': [5, 3, 0.71],
+              'goalkeeper': [3, 2, 0.84],
+              'midfield': [4, 2, 0.76]},
+              
+             'home': {'attack': [4, 1, 0.74],
+              'defence': [5, 3, 0.71],
+              'goalkeeper': [3, 2, 0.82],
+              'midfield': [4, 2, 0.77]}}
+    """
+    
+    fields = ["home", "away"]
+
+    tags = {
+        "defence" : "_d_",
+        "attack" : "_f_",
+        "midfield" : "_m_", 
+        "goalkeeper" : "_g_"    
+    }
+
+    pca_df = pd.DataFrame()
+    report = {}
+
+    for field in fields:
+
+        field_dict = {}
+        for tag in tags:
+
+                position_tag = tags[tag] + field
+                position_components = pca_params[tag]
+
+                pca_columns = [field + "_" + tag + str(component) for component in range(1, position_components + 1)]
+
+                position_cols = [feature for feature in data.columns if position_tag in feature]
+                position_df = data[position_cols]
+
+                pca = PCA(n_components = position_components)
+                pca.fit(position_df)
+                position_pca = pca.transform(position_df)
+                position_pca = pd.DataFrame(position_pca, columns = pca_columns)
+
+                pca_df = pd.concat([pca_df, position_pca], axis = 1)
+
+                variance_expl = round(pca.explained_variance_ratio_.sum(), 2)
+                n_init_cols = len(position_cols)
+
+                field_dict[tag] = [n_init_cols, position_components, variance_expl]
+
+        report[field] = field_dict
+
+    pca_df = pd.concat([pca_df, data["COR_home"], data["COR_away"] ], axis = 1)
+    
+    return pca_df, report
